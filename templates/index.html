@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>osu! Match Uploader</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 2rem; }
+        textarea, button { padding: 0.5rem; font-size: 1rem; margin: 0.5rem 0; width: 100%; }
+        button { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>osu! Match Uploader</h1>
+    <form method="POST" action="/process">
+        <label for="match_input">Paste Match URLs or IDs (one per line or multiple in text):</label><br>
+        <textarea id="match_input" name="match_input" rows="6" placeholder="https://osu.ppy.sh/community/matches/117428039&#10;117428040"></textarea><br>
+        <button type="submit">Fetch & Preview</button>
+    </form>
+</body>
+</html>

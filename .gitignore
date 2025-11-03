@@ -1,0 +1,66 @@
+# ==========================
+# Python / Flask
+# ==========================
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Byte-compiled / optimized / DLL files
+*.pyo
+*.pyd
+*.so
+*.dll
+
+# SQLite / local databases
+*.db
+*.sqlite3
+
+# ==========================
+# Environments
+# ==========================
+.venv/
+venv/
+env/
+ENV/
+.venv*/
+venv*/
+
+# ==========================
+# Configuration / Secrets
+# ==========================
+.env
+config.json
+instance/
+secrets.json
+
+# ==========================
+# Logs / Cache
+# ==========================
+*.log
+*.out
+*.pid
+*.seed
+*.bak
+.cache/
+tmp/
+temp/
+logs/
+
+# ==========================
+# OS / Editor / IDE
+# ==========================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ==========================
+# Project-specific
+# ==========================
+# Exclude generated files
+__init__.pyc
+migrations/
+__snapshots__/
+uploads/

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>osu! Match Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>osu! Match Dashboard</h1>
+
+    <input type="text" id="searchBox" placeholder="Filter by player or beatmap ID...">
+
+    <form id="csvForm" method="POST" action="/download_csv">
+        <input type="hidden" name="csv_data" id="csv_data">
+
+        {% for match_id, scores in all_player_scores.items() %}
+            <h2>Match {{ match_id }}</h2>
+            <table class="match-table">
+                <thead>
+                    <tr>
+                        <th>Select</th>
+                        <th>Player</th>
+                        <th>Beatmap ID</th>
+                        <th>Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for player, beatmaps in scores.items() %}
+                        {% for beatmap_id, score in beatmaps.items() %}
+                            <tr>
+                                <td><input type="checkbox" class="row-select" checked></td>
+                                <td>{{ player }}</td>
+                                <td>{{ beatmap_id }}</td>
+                                <td>{{ score }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+
+        <!-- Instructions for Google Sheets -->
+        <div class="guide">
+            ℹ️ To quickly import this data into Google Sheets:<br>
+            1. Click "Copy CSV to Clipboard".<br>
+            2. Open <strong>Google Sheets</strong> → File → Import → Paste data into a blank sheet.<br>
+            3. Your osu! match data will appear in columns automatically.
+        </div>
+
+        <button type="button" onclick="prepareCSV()">Download Selected CSV</button>
+        <button type="button" onclick="copyCSV()">Copy CSV to Clipboard</button>
+    </form>
+
+    <script>
+        // Filter table rows based on search input
+        const searchBox = document.getElementById("searchBox");
+        searchBox.addEventListener("input", () => {
+            const filter = searchBox.value.toLowerCase();
+
+            document.querySelectorAll(".match-table").forEach(table => {
+                table.querySelectorAll("tbody tr").forEach(row => {
+                    const player = row.querySelector(".player").innerText.toLowerCase();
+                    const beatmap = row.querySelector(".beatmap").innerText.toLowerCase();
+                    row.style.display = (player.includes(filter) || beatmap.includes(filter)) ? "" : "none";
+                });
+            });
+        });
+
+        // Convert table rows to CSV only if checkbox is checked
+        function prepareCSV() {
+            let csvContent = "Match ID,Player,Beatmap ID,Score\n";
+            document.querySelectorAll('.match-table').forEach((table) => {
+                let matchId = table.previousElementSibling.innerText.replace("Match ", "");
+                table.querySelectorAll('tbody tr').forEach(row => {
+                    let checkbox = row.querySelector('.row-select');
+                    if (checkbox.checked && row.style.display !== "none") {
+                        let cols = Array.from(row.querySelectorAll('td')).slice(1).map(td => td.innerText);
+                        csvContent += [matchId, ...cols].join(",") + "\n";
+                    }
+                });
+            });
+
+            document.getElementById('csv_data').value = csvContent;
+            document.getElementById('csvForm').submit();
+        }
+
+        function copyCSV() {
+            let csvContent = "Match ID,Player,Beatmap ID,Score\n";
+            document.querySelectorAll('.match-table').forEach((table) => {
+                let matchId = table.previousElementSibling.innerText.replace("Match ", "");
+                table.querySelectorAll('tbody tr').forEach(row => {
+                    let checkbox = row.querySelector('.row-select');
+                    if (checkbox.checked && row.style.display !== "none") {
+                        let cols = Array.from(row.querySelectorAll('td')).slice(1).map(td => td.innerText);
+                        csvContent += [matchId, ...cols].join(",") + "\n";
+                    }
+                });
+            });
+
+            navigator.clipboard.writeText(csvContent).then(() => {
+                alert("✅ CSV copied to clipboard! You can now paste it into Google Sheets as described above.");
+            }).catch(err => {
+                alert("❌ Failed to copy CSV: " + err);
+            });
+        }
+
+        // Optional: add sorting by column
+        document.querySelectorAll('th').forEach(th => {
+            th.addEventListener('click', () => {
+                const table = th.closest('table');
+                const tbody = table.querySelector('tbody');
+                const rows = Array.from(tbody.querySelectorAll('tr'));
+                const idx = Array.from(th.parentNode.children).indexOf(th);
+
+                rows.sort((a, b) => {
+                    let aText = a.children[idx].innerText;
+                    let bText = b.children[idx].innerText;
+                    return isNaN(aText) ? aText.localeCompare(bText) : aText - bText;
+                });
+
+                rows.forEach(row => tbody.appendChild(row));
+            });
+        });
+    </script>
+</body>
+</html>
