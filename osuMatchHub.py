@@ -21,13 +21,6 @@ def load_config(path="config.json"):
             config = json.load(f)
     else:
         raise FileNotFoundError("⚠️ Missing both .env and config.json — please provide one.")
-    config["database"] = {
-        "dbname": os.getenv("DB_NAME", "osu_data"),
-        "user": os.getenv("DB_USER", "postgres"),
-        "password": os.getenv("DB_PASSWORD", ""),
-        "host": os.getenv("DB_HOST", "localhost"),
-        "port": os.getenv("DB_PORT", "5432")
-    }
     return config
 
 load_dotenv()
@@ -35,8 +28,13 @@ config = load_config()
 CLIENT_ID = os.getenv("OSU_CLIENT_ID")
 CLIENT_SECRET = os.getenv("OSU_CLIENT_SECRET")
 # Extract values
-DB_CONFIG = config["database"]
-
+DB_CONFIG = {
+    "dbname": os.getenv("DB_NAME", "osu_data"),
+        "user": os.getenv("DB_USER", "postgres"),
+        "password": os.getenv("DB_PASSWORD", ""),
+        "host": os.getenv("DB_HOST", "localhost"),
+        "port": os.getenv("DB_PORT", "5432")
+}
 
 def get_osu_token():
     """
