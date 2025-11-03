@@ -3,6 +3,9 @@ from osuMatchHub import get_osu_token, get_match_data, parse_match_data, insert_
 import csv
 import io
 import re
+from dotenv import load_dotenv
+load_dotenv()  # loads .env variables locally
+
 
 app = Flask(__name__)
 

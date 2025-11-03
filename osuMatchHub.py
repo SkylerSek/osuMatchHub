@@ -30,11 +30,23 @@ CLIENT_SECRET = os.getenv("OSU_CLIENT_SECRET")
 # Extract values
 DB_CONFIG = {
     "dbname": os.getenv("DB_NAME", "osu_data"),
-        "user": os.getenv("DB_USER", "postgres"),
-        "password": os.getenv("DB_PASSWORD", ""),
-        "host": os.getenv("DB_HOST", "localhost"),
-        "port": os.getenv("DB_PORT", "5432")
+    "user": os.getenv("DB_USER", "postgres"),
+    "password": os.getenv("DB_PASSWORD", ""),
+    "host": os.getenv("DB_HOST") or "localhost",
+    "port": os.getenv("DB_PORT", "5432")
 }
+print("DB_CONFIG:", DB_CONFIG)
+
+def test_db_connection():
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        conn.close()
+        print(f"✅ Successfully connected to database '{DB_CONFIG['dbname']}' at host '{DB_CONFIG['host']}'")
+    except Exception as e:
+        print(f"❌ Failed to connect to database. Check your DB_CONFIG and environment variables.")
+        print("Error:", e)
+
+test_db_connection()
 
 def get_osu_token():
     """
@@ -152,21 +164,37 @@ def insert_scores(match_id, player_scores):
     conn.close()
 
 def main():
+    """
+    Standalone script entry point for fetching and storing osu! match data.
+    Users can input a match ID manually, or the script can be imported for use in Flask.
+    """
     ensure_database_exists()
     init_db()
+
     token = get_osu_token()
     if not token:
         print("❌ Cannot continue without a valid osu! token.")
         return
 
-    #match_id = 117428004  # example
-    match_id = 117428039
+    # Prompt user for a match ID
+    match_id = input("Enter the osu! match ID to fetch: ").strip()
+    if not match_id.isdigit():
+        print("⚠️ Invalid match ID. Must be a number.")
+        return
+
     data = get_match_data(match_id, token)
+    if not data:
+        print(f"⚠️ Could not fetch match {match_id}.")
+        return
+
     table = parse_match_data(data)
 
-    print(f"Inserting data for match: {data['match']['name']} ...")
+    match_name = data.get("match", {}).get("name", f"Match {match_id}")
+    print(f"Inserting data for match: {match_name} ...")
     insert_scores(match_id, table)
     print("✅ Data inserted successfully!")
+    print("DB_CONFIG:", DB_CONFIG)
+
 
 if __name__ == "__main__":
     main()
