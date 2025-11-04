@@ -4,7 +4,7 @@ A simple tool to fetch osu! match data and store scores in a database. You can e
 
 ## 1️⃣ Using the Website (Recommended)
 
-Open the website: [Your Web App URL]
+Open the website: https://osumatchhub.onrender.com/
 
 Paste your match ID or match URL into the input field.
 
