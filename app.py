@@ -3,15 +3,49 @@ from osuMatchHub import get_osu_token, get_match_data, parse_match_data, insert_
 import csv
 import io
 import re
+import os
 from dotenv import load_dotenv
 load_dotenv()  # loads .env variables locally
 
 
 app = Flask(__name__)
 
-# Initialize database on startup
-ensure_database_exists()
-init_db()
+# Flask will listen on Render's assigned PORT
+PORT = int(os.getenv("PORT", 5000))
+@app.route("/", methods=["GET", "POST"])
+def home():
+    if request.method == "POST":
+        match_id = request.form.get("match_id")
+        if match_id:
+            # Initialize DB only when needed
+            ensure_database_exists()
+            init_db()
+
+            token = get_osu_token()
+            if not token:
+                return "Failed to get osu! token", 500
+
+            data = get_match_data(match_id, token)
+            if not data:
+                return f"Match {match_id} not found", 404
+
+            player_scores = parse_match_data(data)
+            insert_scores(match_id, player_scores)
+
+            message = f"✅ Match {match_id} inserted successfully!"
+
+            output = io.StringIO()
+            writer = csv.writer(output)
+            writer.writerow(["Player", "Beatmap ID", "Score"])  # header
+
+            for player, beatmaps in player_scores.items():
+                for beatmap_id, score in beatmaps.items():
+                    writer.writerow([player, beatmap_id, score])
+
+            csv_text = output.getvalue()
+            output.close()
+
+    return render_template("index.html")
 
 def extract_match_id(input_text):
     """
@@ -76,3 +110,7 @@ def download_csv():
         as_attachment=True,
         download_name="osu_matches.csv"
     )
+
+if __name__ == "__main__":
+    # Ensure Flask listens on all interfaces for Render
+    app.run(host="0.0.0.0", port=PORT)

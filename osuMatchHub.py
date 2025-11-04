@@ -111,27 +111,31 @@ def parse_match_data(data):
     return player_scores
 
 def init_db():
-    conn = psycopg2.connect(**DB_CONFIG)
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS scores (
-            id SERIAL PRIMARY KEY,
-            player_name TEXT NOT NULL,
-            beatmap_id BIGINT NOT NULL,
-            score INT,
-            match_id BIGINT,
-            UNIQUE(player_name, beatmap_id, match_id)
-        );
-    """)
-    conn.commit()
-    cur.close()
-    conn.close()
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS scores (
+                id SERIAL PRIMARY KEY,
+                player_name TEXT NOT NULL,
+                beatmap_id BIGINT NOT NULL,
+                score INT,
+                match_id BIGINT,
+                UNIQUE(player_name, beatmap_id, match_id)
+            );
+        """)
+        conn.commit()
+        cur.close()
+        conn.close()
+        print("✅ Database ready")
+    except Exception as e:
+        print("❌ Failed to prepare database:", e)
 
 def ensure_database_exists():
     """Create the osu_data database if it doesn't exist."""
     try:
         psycopg2.connect(**DB_CONFIG).close()
-        print("✅ Database osu_data already exists.")
+        print("✅ Database " + os.getenv("DB_NAME") + " already exists.")
     except psycopg2.OperationalError:
         print("⚙️  osu_data database not found — creating it now...")
         conn = psycopg2.connect(
